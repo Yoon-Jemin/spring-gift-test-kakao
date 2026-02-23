@@ -1,16 +1,11 @@
 package gift.steps;
 
-import gift.model.CategoryRepository;
-import io.cucumber.java.After;
-import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 
 import java.util.Map;
 
@@ -22,34 +17,21 @@ import static org.hamcrest.Matchers.nullValue;
 
 public class CategorySteps {
 
-    @LocalServerPort
-    private int port;
-
     @Autowired
     private SharedContext context;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Before
-    public void setUp() {
-        RestAssured.port = port;
-    }
-
-    @After
-    public void tearDown() {
-        categoryRepository.deleteAllInBatch();
-    }
-
     @Given("이름이 {string}인 카테고리가 등록되어 있고")
     public void 카테고리가_등록되어_있고(String name) {
-        given()
+        int categoryId = given()
             .contentType(ContentType.JSON)
             .body(Map.of("name", name))
         .when()
             .post("/api/categories")
         .then()
-            .statusCode(200);
+            .statusCode(200)
+            .extract().path("id");
+
+        context.storeId("categoryId", categoryId);
     }
 
     @When("이름이 {string}인 카테고리를 생성하면")
