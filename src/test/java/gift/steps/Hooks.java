@@ -1,6 +1,8 @@
 package gift.steps;
 
 import gift.model.CategoryRepository;
+import gift.model.MemberRepository;
+import gift.model.OptionRepository;
 import gift.model.ProductRepository;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -14,10 +16,16 @@ public class Hooks {
     private int port;
 
     @Autowired
+    private OptionRepository optionRepository;
+
+    @Autowired
     private ProductRepository productRepository;
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
 
     @Before
     public void setUp() {
@@ -26,7 +34,9 @@ public class Hooks {
 
     @After
     public void tearDown() {
+        optionRepository.deleteAllInBatch();
         productRepository.deleteAllInBatch();
         categoryRepository.deleteAllInBatch();
+        memberRepository.deleteAllInBatch();
     }
 }
