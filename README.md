@@ -90,7 +90,8 @@ API가 존재하지 않는 경우에만 Repository 직접 접근을 허용한다
 
 ### 데이터 격리
 
-- `@After` 훅에서 `deleteAllInBatch()`로 매 시나리오 종료 후 데이터를 정리한다
+- `@Before` 훅에서 `deleteAllInBatch()`로 매 시나리오 시작 전 데이터를 정리한다
+  - 이전 시나리오가 실패하더라도 다음 시나리오는 항상 깨끗한 DB에서 시작된다
   - 외래키 제약 순서: Option → Product → Category → Member
 - `@ScenarioScope`로 SharedContext를 시나리오마다 새로 생성하여 상태 누출을 방지한다
 - RestAssured는 별도 스레드에서 HTTP 요청을 보내므로 `@Transactional` 롤백이 동작하지 않아 수동 삭제가 필요하다

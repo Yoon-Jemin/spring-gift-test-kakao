@@ -4,7 +4,6 @@ import gift.model.CategoryRepository;
 import gift.model.MemberRepository;
 import gift.model.OptionRepository;
 import gift.model.ProductRepository;
-import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.restassured.RestAssured;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,14 +28,10 @@ public class Hooks {
 
     @Before
     public void setUp() {
-        RestAssured.port = port;
-    }
-
-    @After
-    public void tearDown() {
         optionRepository.deleteAllInBatch();
         productRepository.deleteAllInBatch();
         categoryRepository.deleteAllInBatch();
         memberRepository.deleteAllInBatch();
+        RestAssured.port = port;
     }
 }
