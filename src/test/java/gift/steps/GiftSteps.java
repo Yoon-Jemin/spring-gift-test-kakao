@@ -1,7 +1,5 @@
 package gift.steps;
 
-import gift.model.Category;
-import gift.model.CategoryRepository;
 import gift.model.GiftDelivery;
 import gift.model.Member;
 import gift.model.MemberRepository;
@@ -28,9 +26,6 @@ public class GiftSteps {
     private SharedContext context;
 
     @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
     private ProductRepository productRepository;
 
     @Autowired
@@ -42,22 +37,19 @@ public class GiftSteps {
     @Autowired
     private GiftDelivery giftDelivery;
 
-    private Product product;
     private final Map<String, Option> options = new java.util.HashMap<>();
     private final Map<String, Member> members = new java.util.HashMap<>();
 
-    @Given("카테고리 {string}과 상품 {string}가 등록되어 있고")
-    public void 카테고리와_상품이_등록되어_있고(String categoryName, String productName) {
-        Category category = categoryRepository.save(new Category(categoryName));
-        product = productRepository.save(new Product(productName, 4500, "http://image.url", category));
-    }
-
+    // 옵션 생성 API가 없으므로 Repository 직접 접근
     @Given("재고 {int}개인 {string} 옵션이 등록되어 있고")
     public void 옵션이_등록되어_있고(int quantity, String optionName) {
+        Long productId = ((Number) context.getId("productId")).longValue();
+        Product product = productRepository.findById(productId).orElseThrow();
         Option option = optionRepository.save(new Option(optionName, quantity, product));
         options.put(optionName, option);
     }
 
+    // 회원 생성 API가 없으므로 Repository 직접 접근
     @Given("회원 {string}이 존재할 때")
     public void 회원이_존재할_때(String name) {
         Member member = memberRepository.save(new Member(name, name + "@test.com"));
