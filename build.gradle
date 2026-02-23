@@ -34,3 +34,10 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+tasks.register('cucumberTest', Test) {
+	description = 'Runs Cucumber BDD tests.'
+	group = 'verification'
+	useJUnitPlatform()
+	include 'gift/CucumberTest.class'
+}
