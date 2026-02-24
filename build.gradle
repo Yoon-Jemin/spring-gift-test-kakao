@@ -42,14 +42,14 @@ tasks.named('test') {
 tasks.register('dockerBuild', Exec) {
 	description = 'Builds Docker images using docker compose.'
 	group = 'docker'
-	commandLine 'docker-compose', 'build'
+	commandLine 'docker', 'compose', 'build'
 }
 
 tasks.register('dockerUp', Exec) {
 	description = 'Starts Docker containers and waits for the app to be ready.'
 	group = 'docker'
 	dependsOn 'dockerBuild'
-	commandLine 'docker-compose', 'up', '-d'
+	commandLine 'docker', 'compose', 'up', '-d'
 
 	doLast {
 		def maxRetries = 30
@@ -76,7 +76,7 @@ tasks.register('dockerUp', Exec) {
 tasks.register('dockerDown', Exec) {
 	description = 'Stops and removes Docker containers.'
 	group = 'docker'
-	commandLine 'docker-compose', 'down'
+	commandLine 'docker', 'compose', 'down'
 }
 
 tasks.register('cucumberTest', Test) {
