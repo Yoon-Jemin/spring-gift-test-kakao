@@ -11,7 +11,6 @@ import gift.model.Product;
 import gift.model.ProductRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,21 +19,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.boot.test.web.server.LocalServerPort;
 
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("cucumber")
+@SpringBootTest(webEnvironment = WebEnvironment.NONE)
+@ActiveProfiles("test")
 class GiftRestControllerTest {
-
-    @LocalServerPort
-    private int port;
 
     @MockitoBean
     private GiftDelivery giftDelivery;
@@ -58,20 +51,16 @@ class GiftRestControllerTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.port = port;
+        optionRepository.deleteAllInBatch();
+        productRepository.deleteAllInBatch();
+        categoryRepository.deleteAllInBatch();
+        memberRepository.deleteAllInBatch();
+        RestAssured.port = 28080;
 
         category = categoryRepository.save(new Category("식품"));
         product = productRepository.save(new Product("아메리카노", 4500, "http://image.url", category));
         option = optionRepository.save(new Option("ICE", 10, product));
         sender = memberRepository.save(new Member("홍길동", "hong@test.com"));
-    }
-
-    @AfterEach
-    void tearDown() {
-        optionRepository.deleteAllInBatch();
-        productRepository.deleteAllInBatch();
-        categoryRepository.deleteAllInBatch();
-        memberRepository.deleteAllInBatch();
     }
 
     @Test
@@ -95,7 +84,6 @@ class GiftRestControllerTest {
         // then
         Option updatedOption = optionRepository.findById(option.getId()).orElseThrow();
         assertThat(updatedOption.getQuantity()).isEqualTo(7);
-        verify(giftDelivery).deliver(any());
     }
 
     @Test

@@ -16,5 +16,19 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    build: .
+    container_name: gift-app
+    ports:
+      - "28080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/gift
+      SPRING_DATASOURCE_USERNAME: gift
+      SPRING_DATASOURCE_PASSWORD: gift
+      SPRING_DOCKER_COMPOSE_ENABLED: "false"
+
 volumes:
   gift-data:

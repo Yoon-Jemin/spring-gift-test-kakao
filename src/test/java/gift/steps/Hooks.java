@@ -7,12 +7,8 @@ import gift.model.ProductRepository;
 import io.cucumber.java.Before;
 import io.restassured.RestAssured;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
 
 public class Hooks {
-
-    @LocalServerPort
-    private int port;
 
     @Autowired
     private OptionRepository optionRepository;
@@ -32,6 +28,6 @@ public class Hooks {
         productRepository.deleteAllInBatch();
         categoryRepository.deleteAllInBatch();
         memberRepository.deleteAllInBatch();
-        RestAssured.port = port;
+        RestAssured.port = 28080;
     }
 }
