@@ -7,11 +7,11 @@ Cucumber + RestAssured를 활용한 BDD 스타일 인수 테스트를 작성합�
 ## 기술 스택
 - Java 21, Spring Boot 3.5.8, Spring Data JPA, PostgreSQL 17
 - Docker Compose (`spring-boot-docker-compose`로 자동 관리)
-- 테스트: Cucumber 7.22.0, RestAssured, JUnit 5, Mockito
+- 테스트: Cucumber 7.22.0, RestAssured, JUnit 5, Mockito, H2 (in-memory)
 
 ## 사전 요구사항
 - Java 21
-- Docker (Docker Desktop 또는 Colima 등)
+- Docker (Docker Desktop 또는 Colima 등) — 개발 서버 실행 시 필요, 테스트는 불필요
 
 ## 실행 환경 구성
 
@@ -22,15 +22,15 @@ Cucumber + RestAssured를 활용한 BDD 스타일 인수 테스트를 작성합�
 ```
 개발 (기본 프로파일)              테스트 (cucumber 프로파일)
 ─────────────────────           ──────────────────────────
-docker-compose.yml              docker-compose-test.yml
-  └─ db (port 5432)               └─ test-db (port 5433)
-  └─ DB: gift                      └─ DB: gift_test
-  └─ volume: gift-data             └─ volume 없음 (휘발성)
-  └─ ddl-auto: update              └─ ddl-auto: create-drop
+docker-compose.yml              H2 in-memory
+  └─ PostgreSQL (port 5432)       └─ jdbc:h2:mem:gift_test
+  └─ DB: gift                     └─ Docker 불필요
+  └─ volume: gift-data            └─ ddl-auto: create-drop
+  └─ ddl-auto: update
 ```
 
-`spring-boot-docker-compose`가 앱/테스트 시작 시 Docker 컨테이너를 자동으로 기동하고 datasource를 구성한다.
-별도로 `docker compose up`을 실행할 필요 없다.
+개발 서버는 `spring-boot-docker-compose`가 Docker 컨테이너를 자동으로 기동하고 datasource를 구성한다.
+테스트는 H2 in-memory DB를 사용하므로 Docker 없이 `./gradlew test`만으로 실행 가능하다.
 
 ### 개발 서버 실행
 
@@ -57,9 +57,7 @@ docker-compose.yml              docker-compose-test.yml
 ./gradlew test --tests "gift.CucumberTest"
 ```
 
-- `docker-compose-test.yml`의 PostgreSQL(포트 5433)이 자동 시작된다.
-- `lifecycle-management=start-only`이므로 테스트 종료 후에도 컨테이너가 유지되어 반복 실행이 빠르다.
-- 컨테이너를 수동으로 정리하려면: `docker-compose -f docker-compose-test.yml down`
+- H2 in-memory DB를 사용하므로 Docker 없이 바로 실행된다.
 
 ## 테스트 구조
 
@@ -151,9 +149,9 @@ API가 존재하지 않는 경우에만 Repository 직접 접근을 허용한다
 
 ## Spring 프로파일 설정
 
-| 프로파일 | 설정 파일 | Docker Compose 파일 | DB | 용도 |
-|---------|----------|--------------------|----|------|
-| 기본 | `application.properties` | `docker-compose.yml` | PostgreSQL (port 5432, `gift`) | 개발 |
-| cucumber | `application-cucumber.properties` | `docker-compose-test.yml` | PostgreSQL (port 5433, `gift_test`) | 테스트 |
+| 프로파일 | 설정 파일 | DB | 용도 |
+|---------|----------|----|------|
+| 기본 | `application.properties` | PostgreSQL (Docker Compose, port 5432) | 개발 |
+| cucumber | `application-cucumber.properties` | H2 in-memory | 테스트 |
 
-테스트 클래스에 `@ActiveProfiles("cucumber")`가 적용되어 있어 테스트 시 자동으로 테스트 전용 DB를 사용한다.
+테스트 클래스에 `@ActiveProfiles("cucumber")`가 적용되어 있어 테스트 시 자동으로 H2 DB를 사용한다.
