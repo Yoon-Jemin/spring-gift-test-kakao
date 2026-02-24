@@ -8,10 +8,11 @@ Cucumber + RestAssured를 활용한 BDD 스타일 인수 테스트를 작성합�
 - Java 21, Spring Boot 3.5.8, Spring Data JPA, PostgreSQL 17
 - Docker Compose (`spring-boot-docker-compose`로 자동 관리)
 - 테스트: Cucumber 7.22.0, RestAssured, JUnit 5, Mockito, H2 (in-memory)
+- 통합 테스트: Testcontainers (PostgreSQL)
 
 ## 사전 요구사항
 - Java 21
-- Docker (Docker Desktop 또는 Colima 등) — 개발 서버 실행 시 필요, 테스트는 불필요
+- Docker (Docker Desktop 또는 Colima 등) — 개발 서버 실행 및 통합 테스트 시 필요, 단위/Cucumber 테스트는 불필요
 
 ## 실행 환경 구성
 
@@ -44,20 +45,25 @@ docker-compose.yml              H2 in-memory
 ### 테스트 실행
 
 ```bash
-# 전체 테스트 (JUnit + Cucumber)
+# JUnit 인수 테스트 (H2, Cucumber·통합 테스트 제외)
 ./gradlew test
 
-# Cucumber BDD 테스트만
+# Cucumber BDD 테스트만 (H2, HTML 리포트 생성)
 ./gradlew cucumberTest
 
-# 기존 JUnit 인수 테스트만
-./gradlew test --tests "gift.ui.*"
-
-# 특정 Cucumber 테스트 클래스 실행 (IDE에서도 동일)
-./gradlew test --tests "gift.CucumberTest"
+# PostgreSQL 통합 테스트 (Testcontainers, Docker 필요)
+./gradlew integrationTest
 ```
 
-- H2 in-memory DB를 사용하므로 Docker 없이 바로 실행된다.
+| 명령어 | DB | 대상 | Docker 필요 |
+|---|---|---|---|
+| `./gradlew test` | H2 | JUnit 인수 테스트 | 불필요 |
+| `./gradlew cucumberTest` | H2 | Cucumber BDD 테스트 | 불필요 |
+| `./gradlew integrationTest` | PostgreSQL (Testcontainers) | `@Tag("integration")` 테스트 | **필요** |
+
+- `test`, `cucumberTest`는 H2 in-memory DB를 사용하므로 Docker 없이 바로 실행된다.
+- `integrationTest`는 Testcontainers가 PostgreSQL 컨테이너를 자동 기동/종료한다.
+- Cucumber HTML 리포트: `build/reports/cucumber/cucumber-report.html`
 
 ## 테스트 구조
 
@@ -72,10 +78,12 @@ src/test/
 │   │   ├── CategorySteps.java             # 카테고리 관련 Step Definitions
 │   │   ├── ProductSteps.java              # 상품 관련 Step Definitions
 │   │   └── GiftSteps.java                 # 선물 관련 Step Definitions
-│   └── ui/                                # JUnit + RestAssured 인수 테스트
-│       ├── CategoryRestControllerTest.java
-│       ├── ProductRestControllerTest.java
-│       └── GiftRestControllerTest.java
+│   ├── ui/                                # JUnit + RestAssured 인수 테스트
+│   │   ├── CategoryRestControllerTest.java
+│   │   ├── ProductRestControllerTest.java
+│   │   └── GiftRestControllerTest.java
+│   └── integration/                       # PostgreSQL 통합 테스트 (@Tag("integration"))
+│       └── CategoryIntegrationTest.java
 └── resources/features/
     ├── category.feature                   # 카테고리 생성/조회 시나리오 (6개)
     ├── product.feature                    # 상품 등록/조회 시나리오 (2개)
@@ -149,9 +157,11 @@ API가 존재하지 않는 경우에만 Repository 직접 접근을 허용한다
 
 ## Spring 프로파일 설정
 
-| 프로파일 | 설정 파일 | DB | 용도 |
-|---------|----------|----|------|
-| 기본 | `application.properties` | PostgreSQL (Docker Compose, port 5432) | 개발 |
-| cucumber | `application-cucumber.properties` | H2 in-memory | 테스트 |
+| 프로파일 | 설정 파일                      | DB | 용도 |
+|---------|----------------------------|----|------|
+| 기본 | `application.yml`          | PostgreSQL (Docker Compose, port 5432) | 개발 |
+| cucumber | `application-cucumber.yml` | H2 in-memory | JUnit/Cucumber 테스트 |
+| integration | `application-integration.yml` | PostgreSQL (Testcontainers) | 통합 테스트 |
 
-테스트 클래스에 `@ActiveProfiles("cucumber")`가 적용되어 있어 테스트 시 자동으로 H2 DB를 사용한다.
+- JUnit/Cucumber 테스트 클래스에 `@ActiveProfiles("cucumber")`가 적용되어 H2 DB를 사용한다.
+- 통합 테스트 클래스에 `@ActiveProfiles("integration")`가 적용되며, `@DynamicPropertySource`로 Testcontainers가 datasource를 주입한다.

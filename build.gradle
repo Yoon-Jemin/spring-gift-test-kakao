@@ -30,15 +30,33 @@ dependencies {
 	testImplementation 'io.cucumber:cucumber-spring:7.22.0'
 	testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.22.0'
 	testImplementation 'org.junit.platform:junit-platform-suite'
+	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
+	testImplementation 'org.testcontainers:postgresql'
+	testImplementation 'org.testcontainers:junit-jupiter'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		excludeEngines 'cucumber'
+		excludeTags 'integration'
+	}
 }
 
 tasks.register('cucumberTest', Test) {
 	description = 'Runs Cucumber BDD tests.'
 	group = 'verification'
-	useJUnitPlatform()
-	include 'gift/CucumberTest.class'
+	useJUnitPlatform {
+		includeEngines 'cucumber'
+	}
+	systemProperty 'cucumber.plugin', 'pretty, html:build/reports/cucumber/cucumber-report.html'
+}
+
+tasks.register('integrationTest', Test) {
+	description = 'Runs integration tests with PostgreSQL Testcontainers.'
+	group = 'verification'
+	useJUnitPlatform {
+		includeTags 'integration'
+		excludeEngines 'cucumber', 'junit-platform-suite'
+	}
+	systemProperty 'spring.profiles.active', 'integration'
 }
