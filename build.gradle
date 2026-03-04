@@ -33,6 +33,7 @@ dependencies {
 
 tasks.named('test') {
 	dependsOn 'dockerUp'
+	finalizedBy 'dockerDown'
 	useJUnitPlatform {
 		excludeEngines 'cucumber'
 	}
@@ -83,6 +84,7 @@ tasks.register('cucumberTest', Test) {
 	description = 'Runs Cucumber BDD tests.'
 	group = 'verification'
 	dependsOn 'dockerUp'
+	finalizedBy 'dockerDown'
 	useJUnitPlatform {
 		includeEngines 'cucumber'
 	}
